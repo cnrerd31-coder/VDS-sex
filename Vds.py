@@ -20,9 +20,7 @@ import requests
 import hashlib
 import mimetypes
 import struct
-from flask import Flask
-
-# --- Flask Keep Alive ---
+import asyncio
 from flask import Flask
 from threading import Thread
 
@@ -2478,16 +2476,28 @@ def cleanup():
     logger.warning("Temizlik tamamlandı.")
 atexit.register(cleanup)
 
+
+
+
+#ananın amını deşerken hiç olmamış kadar eğlenicem dostum😎😎😎😎😎😎q(≧▽≦q)
+
+
 # --- RENDER 7/24 ---
-app = Flask(__name__)  # Burayı düzelttik
+app = Flask(__name__)
 
 @app.route('/')
 def home(): 
     return "Bot Aktif! ✅"
 
 async def main():
-    threading.Thread(target=lambda: app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000))), daemon=True).start()
+    # Flask'ı ayrı bir thread'de başlatıyoruz
+    threading.Thread(
+        target=lambda: app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000))), 
+        daemon=True
+    ).start()
+    
+    # Botları başlatıyoruz
     await asyncio.gather(dp_luna.start_polling(luna_bot), dp_onay.start_polling(onay_bot))
 
-if __name__ == "__main__":  # Burayı düzelttik
+if __name__ == "__main__":
     asyncio.run(main())
