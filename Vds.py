@@ -2479,10 +2479,7 @@ atexit.register(cleanup)
 
 # --- Main Execution ---
 if __name__ == '__main__':
-    logger.info("="*40 + "\n🤖 Bot Başlatılıyor...\n" + f"🐍 Python: {sys.version.split()[0]}\n" +
-                f"🔧 Ana Dizin: {BASE_DIR}\n📁 Yükleme Dizini: {UPLOAD_BOTS_DIR}\n" +
-                f"📊 Veri Dizini: {IROTECH_DIR}\n🔑 Sahip ID: {OWNER_ID}\n🛡️ Yöneticiler: {admin_ids}\n" + "="*40)
-    canli_tut()
+ 
     logger.info("🚀 Polling başlatılıyor...")
     while True:
         try:
