@@ -2478,27 +2478,16 @@ def cleanup():
     logger.warning("Temizlik tamamlandı.")
 atexit.register(cleanup)
 
-# --- RENDER 7/24 DÜZELTİLMİŞ KISIM ---
-app = Flask(__name__) # 'name' değil '__name__' olmalı
+# --- RENDER 7/24 ---
+app = Flask(__name__)  # Burayı düzelttik
 
 @app.route('/')
 def home(): 
     return "Bot Aktif! ✅"
 
 async def main():
-    # Flask'ı ayrı bir thread'de başlatıyoruz
-    port = int(os.environ.get("PORT", 10000))
-    threading.Thread(target=lambda: app.run(host='0.0.0.0', port=port), daemon=True).start()
-    
-    print("🚀 Sistemler Başlatıldı: Luna ve Onay Botu Aktif!")
-    # İki botu aynı anda dinlemeye başlıyoruz
-    await asyncio.gather(
-        dp_luna.start_polling(luna_bot), 
-        dp_onay.start_polling(onay_bot)
-    )
+    threading.Thread(target=lambda: app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000))), daemon=True).start()
+    await asyncio.gather(dp_luna.start_polling(luna_bot), dp_onay.start_polling(onay_bot))
 
-if __name__ == "__main__": # 'name' ve 'main' değil, alt çizgili hali
-    try:
-        asyncio.run(main())
-    except (KeyboardInterrupt, SystemExit):
-        print("⚠️ Bot kapatıldı.")
+if __name__ == "__main__":  # Burayı düzelttik
+    asyncio.run(main())
