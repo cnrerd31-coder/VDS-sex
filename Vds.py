@@ -2494,7 +2494,9 @@ def start_bot():
     print("🚀 Telegram Bot Başlatılıyor...")
     while True:
         try:
-            # Render ağında kopmaları önlemek için timeout değerleri yüksektir
+          from keep_alive import keep_alive
+keep_alive()
+
             bot.infinity_polling(timeout=90, long_polling_timeout=20)
         except Exception as e:
             print(f"⚠️ Bağlantı koptu, 5 saniye içinde tekrar bağlanacak: {e}")
