@@ -29,7 +29,7 @@ app = Flask('')
 
 @app.route('/')
 def home():
-    return "Ben Marco, Dosya Sunucusuyum."
+    return "Ben luna, Dosya Sunucusuyum."
 
 def run_flask():
     port = int(os.environ.get("PORT", 8080))
@@ -43,11 +43,11 @@ def keep_alive():
 # --- End Flask Keep Alive ---
 
 # --- Configuration ---
-TOKEN = '8525588143:AAEzy21FXq4uVW19gU_2VsLizP8Ew28qr4A'
-OWNER_ID = 7752130260
-ADMIN_ID = 7752130260
-YOUR_USERNAME = '@RatServiceBot'
-UPDATE_CHANNEL = 'https://t.me/QueryBots'
+TOKEN = '8668348358:AAF1T_Mqo8ZKJguRAoNSESndB8EGqcyxVFs'
+OWNER_ID = 7250471858
+ADMIN_ID = 7250471858
+YOUR_USERNAME = '@Lunavdsligtg_bot'
+UPDATE_CHANNEL = 'https://t.me/glearya'
 
 # Klasör kurulumu - mutlak yollar kullanılarak
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
