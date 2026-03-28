@@ -20,6 +20,7 @@ import requests
 import hashlib
 import mimetypes
 import struct
+from flask import Flask
 
 # --- Flask Keep Alive ---
 from flask import Flask
@@ -2477,16 +2478,31 @@ def cleanup():
     logger.warning("Temizlik tamamlandı.")
 atexit.register(cleanup)
 
-# --- Main Execution ---
-if __name__ == '__main__':
- 
-    logger.info("🚀 Polling başlatılıyor...")
+# ================= RENDER 7/24 AKTİF TUTMA SİSTEMİ =================
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot 7/24 Aktif! ✅"
+
+def run_web_server():
+    # Render'ın beklediği Port'u otomatik alır
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
+
+def start_bot():
+    print("🚀 Telegram Bot Başlatılıyor...")
     while True:
         try:
-            bot.infinity_polling(logger_level=logging.INFO, timeout=60, long_polling_timeout=30)
-        except requests.exceptions.ReadTimeout: logger.warning("Polling ReadTimeout. 5sn içinde yeniden başlatılıyor..."); time.sleep(5)
-        except requests.exceptions.ConnectionError as ce: logger.error(f"Polling Bağlantı Hatası: {ce}. 15sn içinde yeniden deneniyor..."); time.sleep(15)
+            # Render ağında kopmaları önlemek için timeout değerleri yüksektir
+            bot.infinity_polling(timeout=90, long_polling_timeout=20)
         except Exception as e:
-            logger.critical(f"💥 Kurtarılamaz polling hatası: {e}", exc_info=True)
-            logger.info("Kritik hata nedeniyle polling 30sn içinde yeniden başlatılıyor..."); time.sleep(30)
-        finally: logger.warning("Polling denemesi tamamlandı. Döngüde yeniden başlatılacak."); time.sleep(1)
+            print(f"⚠️ Bağlantı koptu, 5 saniye içinde tekrar bağlanacak: {e}")
+            time.sleep(5)
+
+if __name__ == "__main__":
+    # 1. Flask sunucusunu arka planda başlat (Port hatasını çözer)
+    threading.Thread(target=run_web_server, daemon=True).start()
+    
+    # 2. Botu ana kolda başlat (Sonsuz döngü)
+    start_bot()
