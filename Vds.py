@@ -2478,33 +2478,14 @@ def cleanup():
     logger.warning("Temizlik tamamlandı.")
 atexit.register(cleanup)
 
-# ================= RENDER 7/24 AKTİF TUTMA SİSTEMİ =================
-app = Flask(__name__)
-
+# --- RENDER 7/24 ---
+app = Flask(name)
 @app.route('/')
-def home():
-    return "Bot 7/24 Aktif! ✅"
+def home(): return "Bot Aktif! ✅"
 
-def run_web_server():
-    # Render'ın beklediği Port'u otomatik alır
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)
+async def main():
+    threading.Thread(target=lambda: app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000))), daemon=True).start()
+    await asyncio.gather(dp_luna.start_polling(luna_bot), dp_onay.start_polling(onay_bot))
 
-def start_bot():
-    print("🚀 Telegram Bot Başlatılıyor...")
-    while True:
-        try:
-          from keep_alive import keep_alive
-keep_alive()
-
-            bot.infinity_polling(timeout=90, long_polling_timeout=20)
-        except Exception as e:
-            print(f"⚠️ Bağlantı koptu, 5 saniye içinde tekrar bağlanacak: {e}")
-            time.sleep(5)
-
-if __name__ == "__main__":
-    # 1. Flask sunucusunu arka planda başlat (Port hatasını çözer)
-    threading.Thread(target=run_web_server, daemon=True).start()
-    
-    # 2. Botu ana kolda başlat (Sonsuz döngü)
-    start_bot()
+if name == "main":
+    asyncio.run(main())
