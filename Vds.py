@@ -2482,35 +2482,34 @@ atexit.register(cleanup)
 #ananın amını deşerken hiç olmamış kadar eğlenicem dostum😎😎😎😎😎😎q(≧▽≦q)
 
 
-# --- RENDER 7/24 KESİNTİSİZ SİSTEM (0.0.0.0) ---
+# --- RENDER 7/24 FİNAL SİSTEMİ ---
 
-def run_flask():
-    """Render'ın beklediği portu açar ve canlı tutar."""
-    # Render'ın dinamik portunu al, yoksa 10000 kullan
+def run_flask_server():
+    """Render portunu açar ve 'Bot Aktif' mesajı verir."""
     port = int(os.environ.get("PORT", 10000))
-    # Thread içinde çalıştığı için debug=False ve use_reloader=False olmalı
+    # Thread içinde çalıştığı için reloader ve debug kapalı olmalı
     app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
 
-def start_polling():
-    """Botu sonsuz döngüde ve hatalara karşı dirençli başlatır."""
-    logger.info("Telebot Polling başlatılıyor...")
-    try:
-        # non_stop=True: Hata gelse bile botu kapatmaz, tekrar dener.
-        # timeout=20: Render bağlantı kopmalarına karşı direnç sağlar.
-        bot.infinity_polling(non_stop=True, interval=0, timeout=20)
-    except Exception as e:
-        logger.error(f"Polling hatası: {e}")
-        time.sleep(5)
-        start_polling() # Hata olursa kendini yeniden başlatır
+def start_bot_polling():
+    """Botu hatalara karşı dirençli şekilde başlatır."""
+    print("🚀 Bot Polling başlatılıyor...")
+    while True:
+        try:
+            # interval=0 ve non_stop=True Render'da en hızlı tepkiyi verir
+            bot.polling(non_stop=True, interval=0, timeout=20)
+        except Exception as e:
+            logger.error(f"⚠️ Polling hatası oluştu, 5 saniye sonra tekrar denenecek: {e}")
+            time.sleep(5)
+            continue
 
 if __name__ == "__main__":
-    # 1. Flask'ı arka planda başlat (Render'ın 'Port Açılmadı' diyip kapatmasını engeller)
-    t = threading.Thread(target=run_flask)
-    t.daemon = True
-    t.start()
-    
-    print("✅ Flask 0.0.0.0 sistemi aktif.")
-    print("🚀 Bot 7/24 modunda Render üzerinde çalışıyor...")
-    
-    # 2. Ana thread'de botu başlat (Patlamayı engellemek için en güvenli yol)
-    start_polling()
+    # 1. Önce Flask'ı arka planda (Thread) başlatıyoruz. 
+    # Render'ın "Port açılmadı" diyip botu öldürmesini bu engeller.
+    flask_thread = threading.Thread(target=run_flask_server)
+    flask_thread.daemon = True
+    flask_thread.start()
+    print("✅ Render Port Sistemi (Flask) arka planda başlatıldı.")
+
+    # 2. Ana döngüde botu çalıştırıyoruz.
+    # Bu sayede bot çökerse bile 'while' döngüsü sayesinde tekrar ayağa kalkar.
+    start_bot_polling()
