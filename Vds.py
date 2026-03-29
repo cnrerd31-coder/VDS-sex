@@ -2482,27 +2482,35 @@ atexit.register(cleanup)
 #ananın amını deşerken hiç olmamış kadar eğlenicem dostum😎😎😎😎😎😎q(≧▽≦q)
 
 
-# --- RENDER 7/24 SİSTEMİ ---
-import os
+# --- RENDER 7/24 KESİNTİSİZ SİSTEM (0.0.0.0) ---
 
 def run_flask():
-    # Render'ın verdiği portu kullan, yoksa 10000 portunu aç
+    """Render'ın beklediği portu açar ve canlı tutar."""
+    # Render'ın dinamik portunu al, yoksa 10000 kullan
     port = int(os.environ.get("PORT", 10000))
-    # 0.0.0.0 üzerinden yayın yapmazsan Render dışarıya kapalı kalır
-    app.run(host='0.0.0.0', port=port)
+    # Thread içinde çalıştığı için debug=False ve use_reloader=False olmalı
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
 
-async def main():
-    # Flask'ı ayrı bir kanalda başlatıyoruz (Render uyumasın diye kapı açıyoruz)
-    threading.Thread(target=run_flask, daemon=True).start()
-    
-    print("🚀 Bot Render üzerinde 7/24 modunda başlatılıyor...")
-    
-    # Senin yukarıda tanımladığın 'bot' değişkeniyle polling başlatıyoruz
-    # non_stop=True sayesinde hata alsa bile bot kapanmaz, tekrar dener
-    bot.infinity_polling(non_stop=True, timeout=20)
+def start_polling():
+    """Botu sonsuz döngüde ve hatalara karşı dirençli başlatır."""
+    logger.info("Telebot Polling başlatılıyor...")
+    try:
+        # non_stop=True: Hata gelse bile botu kapatmaz, tekrar dener.
+        # timeout=20: Render bağlantı kopmalarına karşı direnç sağlar.
+        bot.infinity_polling(non_stop=True, interval=0, timeout=20)
+    except Exception as e:
+        logger.error(f"Polling hatası: {e}")
+        time.sleep(5)
+        start_polling() # Hata olursa kendini yeniden başlatır
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("Bot durduruldu.")
+    # 1. Flask'ı arka planda başlat (Render'ın 'Port Açılmadı' diyip kapatmasını engeller)
+    t = threading.Thread(target=run_flask)
+    t.daemon = True
+    t.start()
+    
+    print("✅ Flask 0.0.0.0 sistemi aktif.")
+    print("🚀 Bot 7/24 modunda Render üzerinde çalışıyor...")
+    
+    # 2. Ana thread'de botu başlat (Patlamayı engellemek için en güvenli yol)
+    start_polling()
