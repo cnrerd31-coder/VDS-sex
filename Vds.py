@@ -2482,22 +2482,27 @@ atexit.register(cleanup)
 #ananın amını deşerken hiç olmamış kadar eğlenicem dostum😎😎😎😎😎😎q(≧▽≦q)
 
 
-# --- RENDER 7/24 ---
-app = Flask(__name__)
+# --- RENDER 7/24 SİSTEMİ ---
+import os
 
-@app.route('/')
-def home(): 
-    return "Bot Aktif! ✅"
+def run_flask():
+    # Render'ın verdiği portu kullan, yoksa 10000 portunu aç
+    port = int(os.environ.get("PORT", 10000))
+    # 0.0.0.0 üzerinden yayın yapmazsan Render dışarıya kapalı kalır
+    app.run(host='0.0.0.0', port=port)
 
 async def main():
-    # Flask'ı ayrı bir thread'de başlatıyoruz
-    threading.Thread(
-        target=lambda: app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000))), 
-        daemon=True
-    ).start()
+    # Flask'ı ayrı bir kanalda başlatıyoruz (Render uyumasın diye kapı açıyoruz)
+    threading.Thread(target=run_flask, daemon=True).start()
     
-    # Botları başlatıyoruz
-    await asyncio.gather(dp_luna.start_polling(luna_bot), dp_onay.start_polling(onay_bot))
+    print("🚀 Bot Render üzerinde 7/24 modunda başlatılıyor...")
+    
+    # Senin yukarıda tanımladığın 'bot' değişkeniyle polling başlatıyoruz
+    # non_stop=True sayesinde hata alsa bile bot kapanmaz, tekrar dener
+    bot.infinity_polling(non_stop=True, timeout=20)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("Bot durduruldu.")
