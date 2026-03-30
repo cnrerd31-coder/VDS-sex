@@ -2501,6 +2501,99 @@ def start_bot_polling():
             logger.error(f"⚠️ Polling hatası oluştu, 5 saniye sonra tekrar denenecek: {e}")
             time.sleep(5)
             continue
+# ======================================================
+# 📥 ONAY SİSTEMİ (DOSYA GÖNDERİMİ & KONTROL)
+# ======================================================
+
+@bot.message_handler(content_types=['document', 'video', 'audio', 'photo'])
+def handle_incoming_file(message):
+    # Eğer bot kilitliyse ve gönderen admin değilse engelle
+    if bot_locked and message.from_user.id not in admin_ids:
+        bot.reply_to(message, "🔐 Bot şu an bakımda/kilitli. Lütfen daha sonra deneyin.")
+        return
+
+    user_id = message.from_user.id
+    user_name = message.from_user.first_name
+    username = f"@{message.from_user.username}" if message.from_user.username else "Yok"
+    date_str = datetime.now().strftime("%d/%m/%Y %H:%M")
+
+    # Dosya ID ve Tür Belirleme
+    file_id = None
+    file_type = "Bilinmeyen"
+    
+    if message.document:
+        file_id = message.document.file_id
+        file_type = f"📄 Belge ({message.document.file_name})"
+    elif message.video:
+        file_id = message.video.file_id
+        file_type = "🎬 Video"
+    elif message.audio:
+        file_id = message.audio.file_id
+        file_type = "🎵 Ses"
+    elif message.photo:
+        file_id = message.photo[-1].file_id
+        file_type = "🖼️ Fotoğraf"
+
+    # Yöneticiye (Sana) Gidecek Rapor
+    admin_caption = (
+        f"📩 **Yeni Dosya Onay Bekliyor!**\n\n"
+        f"👤 **Gönderen:** {user_name} ({username})\n"
+        f"🆔 **ID:** `{user_id}`\n"
+        f"📅 **Tarih:** {date_str}\n"
+        f"📂 **Tür:** {file_type}\n\n"
+        f"⚠️ *Kabul ederseniz dosya işleme alınacaktır.*"
+    )
+
+    # Onay/Red Butonları
+    markup = types.InlineKeyboardMarkup()
+    # Callback verisine user_id ve file_id gömüyoruz (Böylece kimi onayladığını bot bilir)
+    btn_approve = types.InlineKeyboardButton("✅ Kabul Et", callback_data=f"approve_{user_id}_{file_id}")
+    btn_reject = types.InlineKeyboardButton("❌ Reddet", callback_data=f"reject_{user_id}")
+    markup.add(btn_approve, btn_reject)
+
+    try:
+        # Dosyayı kopyasını sana gönderir
+        if message.document:
+            bot.send_document(OWNER_ID, file_id, caption=admin_caption, reply_markup=markup, parse_mode='Markdown')
+        elif message.photo:
+            bot.send_photo(OWNER_ID, file_id, caption=admin_caption, reply_markup=markup, parse_mode='Markdown')
+        else:
+            bot.send_message(OWNER_ID, admin_caption, reply_markup=markup, parse_mode='Markdown')
+            
+        bot.reply_to(message, "📤 **Dosyanız iletildi!**\n\nSahibim inceledikten sonra onay verirse işleminiz başlayacaktır. Lütfen bekleyin... ⏳")
+    except Exception as e:
+        logger.error(f"Onay mesajı gönderilemedi: {e}")
+        bot.reply_to(message, "❌ Bir hata oluştu, dosya sahibime ulaştırılamadı.")
+
+# --- Buton Tıklama Mantığı ---
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('approve_') or call.data.startswith('reject_'))
+def callback_handler(call):
+    # Yetki Kontrolü (Sadece sen basabilirsin)
+    if call.from_user.id != OWNER_ID:
+        bot.answer_callback_query(call.id, text="⚠️ Bu yetki sadece bot sahibine aittir!", show_alert=True)
+        return
+
+    data = call.data.split('_')
+    action = data[0]
+    target_user_id = data[1]
+
+    if action == "approve":
+        # Kullanıcıyı bilgilendir
+        bot.send_message(target_user_id, "🎉 **Dosyanız Onaylandı!**\nArtık botun özelliklerini kullanmaya devam edebilirsiniz.")
+        # Senin mesajını güncelle
+        bot.edit_message_caption("✅ **Bu gönderiyi onayladınız.**", chat_id=call.message.chat.id, message_id=call.message.message_id)
+        bot.answer_callback_query(call.id, text="Onay verildi!")
+
+    elif action == "reject":
+        # Kullanıcıyı bilgilendir
+        bot.send_message(target_user_id, "🚫 **Dosyanız Reddedildi.**\nLütfen kurallara uygun dosyalar gönderin.")
+        # Senin mesajını güncelle
+        bot.edit_message_caption("❌ **Bu gönderiyi reddettiniz.**", chat_id=call.message.chat.id, message_id=call.message.message_id)
+        bot.answer_callback_query(call.id, text="Reddedildi.")
+
+# ======================================================
+
 
 if __name__ == "__main__":
     # 1. Önce Flask'ı arka planda (Thread) başlatıyoruz. 
