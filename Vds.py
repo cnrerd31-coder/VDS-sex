@@ -2592,3 +2592,5 @@ if __name__ == "__main__":
     # 2. Ana döngüde botu çalıştırıyoruz.
     # Bu sayede bot çökerse bile 'while' döngüsü sayesinde tekrar ayağa kalkar.
     start_bot_polling()
+selam dostum bu kodda herkes dosyayı yükleyince botun sahibine aşşağıda kabul et✅ reddet❌ butonları olsun ama eski dosya yğklemeyi değiştirme
+
