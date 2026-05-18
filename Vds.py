@@ -45,7 +45,7 @@ def keep_alive():
 TOKEN = '8657079252:AAGDt5mKng7CQYpZEwp-DS-_oQSFCOaeHPE'
 OWNER_ID = 7250471858
 ADMIN_ID = 7250471858
-YOUR_USERNAME = '@Lunavdsligtg_bot'
+YOUR_USERNAME = '@lunasloury'
 UPDATE_CHANNEL = 'https://t.me/glearya'
 
 # Klasör kurulumu - mutlak yollar kullanılarak
@@ -731,6 +731,7 @@ TELEGRAM_MODULES = {
     'telegram_translate': 'telegram-translate',
     'bs4': 'beautifulsoup4',
     'requests': 'requests',
+    'pyfiglet': 'pyfiglet',
     'pillow': 'Pillow',
     'cv2': 'opencv-python',
     'yaml': 'PyYAML',
